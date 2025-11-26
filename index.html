@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AICodeLab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">AICodeLab</div>
+        <div class="section">
+          <div class="section-title">Agentes de IA</div>
+          <div class="agent-item active">
+            <div class="agent-avatar">🤖</div>
+            <div class="agent-info">
+              <div class="agent-name">CodeLab</div>
+              <div class="agent-sub">Assistente inteligente de desenvolvimento</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="topbar">
+          <div class="top-actions">
+            <div class="user" id="userSection"></div>
+          </div>
+        </header>
+
+        <section class="card">
+          <div class="message">
+            <div class="message-header">
+              <div class="message-avatar">🤖</div>
+              <div>
+                <div class="message-title">CodeLab</div>
+                <div class="message-time" id="messageTime">Agora</div>
+              </div>
+            </div>
+            <div class="message-body">
+              Olá! Sou o CodeLab, seu assistente inteligente de desenvolvimento. Posso ajudar você na implementação de aplicações completas. Qual projeto você gostaria de começar?
+            </div>
+          </div>
+        </section>
+
+        <section class="chat" id="chatSection">
+          <div class="chat-log" id="chatLog"></div>
+          <div class="composer">
+            <div class="composer-row">
+              <input type="text" id="chatTaskInput" placeholder="Digite sua tarefa (ex.: Gere CRUD de Usuários)" />
+              <input type="text" id="chatLanguageInput" placeholder="Linguagem (ex.: Python, Node)" />
+              <select id="chatPresetSelect">
+                <option value="" selected>Nenhum</option>
+                <option value="spring">Spring</option>
+                <option value="express">Express</option>
+                <option value="flask">Flask</option>
+              </select>
+            </div>
+            <div class="agents" id="chatAgents">
+              <label class="chip"><input type="checkbox" value="front" checked /><span>front</span></label>
+              <label class="chip"><input type="checkbox" value="back" checked /><span>back</span></label>
+              <label class="chip"><input type="checkbox" value="qa" checked /><span>qa</span></label>
+            </div>
+            <div class="composer-actions">
+              <button class="button" id="chatSendBtn">Enviar</button>
+              <button class="button primary" id="chatZipBtn">Gerar ZIP</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="generatePanel" hidden>
+          <div class="panel-title">Gerar Projeto</div>
+          <form id="generateForm">
+            <div class="grid">
+              <label>
+                <span>Tarefa</span>
+                <input type="text" id="taskInput" placeholder="Descreva a tarefa" required />
+              </label>
+              <label>
+                <span>Preset</span>
+                <select id="presetSelect">
+                  <option value="" selected>Nenhum</option>
+                  <option value="spring">Spring</option>
+                  <option value="express">Express</option>
+                  <option value="flask">Flask</option>
+                </select>
+              </label>
+              <label>
+                <span>Projeto</span>
+                <input type="text" id="projectNameInput" placeholder="projeto" required />
+              </label>
+              <label>
+                <span>Group ID (Spring)</span>
+                <input type="text" id="groupIdInput" placeholder="com.example.demo" />
+              </label>
+              <label>
+                <span>Linguagem</span>
+                <input type="text" id="languageInput" placeholder="Ex.: Python, Java" />
+              </label>
+            </div>
+            <div class="agents">
+              <label class="chip"><input type="checkbox" value="front" checked /><span>front</span></label>
+              <label class="chip"><input type="checkbox" value="back" checked /><span>back</span></label>
+              <label class="chip"><input type="checkbox" value="qa" checked /><span>qa</span></label>
+            </div>
+            <div class="actions">
+              <button class="button primary" id="generateSubmitBtn" type="submit">Gerar ZIP</button>
+              <button class="button" id="generateCloseBtn" type="button">Fechar</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel" id="inlinePanel" hidden>
+          <div class="panel-title">Executar Agentes</div>
+          <form id="inlineForm">
+            <div class="grid">
+              <label>
+                <span>Tarefa</span>
+                <input type="text" id="inlineTaskInput" placeholder="Descreva a tarefa" required />
+              </label>
+              <label>
+                <span>Linguagem</span>
+                <input type="text" id="inlineLanguageInput" placeholder="Ex.: Python, Java" />
+              </label>
+              <label>
+                <span>Preset</span>
+                <select id="inlinePresetSelect">
+                  <option value="" selected>Nenhum</option>
+                  <option value="spring">Spring</option>
+                  <option value="express">Express</option>
+                  <option value="flask">Flask</option>
+                </select>
+              </label>
+            </div>
+            <div class="agents">
+              <label class="chip"><input type="checkbox" value="front" checked /><span>front</span></label>
+              <label class="chip"><input type="checkbox" value="back" checked /><span>back</span></label>
+              <label class="chip"><input type="checkbox" value="qa" checked /><span>qa</span></label>
+            </div>
+            <div class="actions">
+              <button class="button primary" id="inlineSubmitBtn" type="submit">Executar</button>
+              <button class="button" id="inlineCloseBtn" type="button">Fechar</button>
+            </div>
+          </form>
+          <pre class="result" id="inlineResult"></pre>
+        </section>
+      </main>
+    </div>
+    <section class="login-view" id="loginView" hidden>
+      <div class="login-card">
+        <div class="login-title">Entrar</div>
+        <form id="loginForm">
+          <label>
+            <span>Email</span>
+            <input type="email" id="emailInput" required />
+          </label>
+          <label>
+            <span>Senha</span>
+            <input type="password" id="passwordInput" required />
+          </label>
+          <div class="actions">
+            <button class="button primary" id="loginSubmitBtn" type="submit">Entrar</button>
+          </div>
+        </form>
+        <div class="modal-sub">Sem conta? Registre abaixo.</div>
+        <form id="registerForm">
+          <div class="grid">
+            <label>
+              <span>Email</span>
+              <input type="email" id="regEmailInput" />
+            </label>
+            <label>
+              <span>Senha</span>
+              <input type="password" id="regPasswordInput" />
+            </label>
+          </div>
+          <button class="button" id="registerSubmitBtn" type="submit">Registrar</button>
+        </form>
+      </div>
+    </section>
+
+    
+
+    <div class="overlay" id="overlay" hidden>
+      <div class="spinner"></div>
+    </div>
+
+    <div class="toasts" id="toasts"></div>
+
+    <script src="app.js" defer></script>
+  </body>
+  </html>
+

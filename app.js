@@ -35,8 +35,9 @@ function updateUser(){
   if(token){
     getMe().then(u=>{
       const b=document.createElement("div");b.className="user-badge";const label=(u.email||"").split("@")[0];b.textContent=label;
+      const acct=document.createElement("button");acct.className="button";acct.textContent="Conta";acct.onclick=openAccount;
       const out=document.createElement("button");out.className="button";out.textContent="Sair";out.onclick=logout;
-      userSection.innerHTML="";userSection.appendChild(b);userSection.appendChild(out);
+      userSection.innerHTML="";userSection.appendChild(b);userSection.appendChild(acct);userSection.appendChild(out);
       showApp();
     }).catch(()=>{
       token="";localStorage.removeItem(TOKEN_KEY);
@@ -92,6 +93,8 @@ function init(){
   const api=qp.get("api")
   if(api){apiUrl=api;localStorage.setItem(API_URL_KEY,api)}
   setLoading(false)
+  const urlToken = qp.get("reset_token") || qp.get("token") || ""
+  if(urlToken){ lastResetToken = urlToken; activateReset(); const btn=document.getElementById("resetSubmitBtn"); if(btn) btn.disabled=false; toast("Token de reset detectado","success") }
   if(token){updateUser()}else{showLogin()}
   toast(`API: ${apiUrl}`)
 }
@@ -180,3 +183,41 @@ async function generateZipWithText(task){
 chatSendBtn&& (chatSendBtn.onclick=async()=>{const task=(chatTaskInput.value||"").trim();if(!task){toast("Digite a tarefa","error");return}addMessage('user',task);const friendly=/\b(obrigado|valeu|thanks|obg)\b/i;if(friendly.test(task)){addMessage('assistant','De nada! Posso gerar outro ZIP com ajustes.');return}chatSendBtn.disabled=true;try{await executeTaskWithText(task)}finally{chatSendBtn.disabled=false}})
 
 chatZipBtn&& (chatZipBtn.onclick=async()=>{const task=(chatTaskInput.value||"").trim();if(!task){toast("Digite a tarefa","error");return}addMessage('user',`Gerar ZIP: ${task}`);chatZipBtn.disabled=true;try{await generateZipWithText(task)}finally{chatZipBtn.disabled=false}})
+const tabLogin = document.getElementById("tabLogin")
+const tabRegister = document.getElementById("tabRegister")
+const loginPane = document.getElementById("loginPane")
+const registerPane = document.getElementById("registerPane")
+const gotoRegister = document.getElementById("gotoRegister")
+const gotoLogin = document.getElementById("gotoLogin")
+const forgotLink = document.getElementById("forgotLink")
+const resetPane = document.getElementById("resetPane")
+const resetRequestForm = document.getElementById("resetRequestForm")
+const resetForm = document.getElementById("resetForm")
+const resetBackBtn = document.getElementById("resetBackBtn")
+const accountModal = document.getElementById("accountModal")
+const updatePasswordForm = document.getElementById("updatePasswordForm")
+const deleteAccountForm = document.getElementById("deleteAccountForm")
+const accountCloseBtn = document.getElementById("accountCloseBtn")
+function activateLogin(){if(tabLogin&&tabRegister){tabLogin.classList.add('active');tabRegister.classList.remove('active')}if(loginPane&&registerPane&&resetPane){loginPane.classList.remove('pane-hidden');registerPane.classList.add('pane-hidden');resetPane.classList.add('pane-hidden')}}
+function activateRegister(){if(tabLogin&&tabRegister){tabLogin.classList.remove('active');tabRegister.classList.add('active')}if(loginPane&&registerPane&&resetPane){loginPane.classList.add('pane-hidden');registerPane.classList.remove('pane-hidden');resetPane.classList.add('pane-hidden')}}
+function activateReset(){if(tabLogin&&tabRegister){tabLogin.classList.remove('active');tabRegister.classList.remove('active')}if(loginPane&&registerPane&&resetPane){loginPane.classList.add('pane-hidden');registerPane.classList.add('pane-hidden');resetPane.classList.remove('pane-hidden')}}
+tabLogin&& (tabLogin.onclick=activateLogin)
+tabRegister&& (tabRegister.onclick=activateRegister)
+gotoRegister&& (gotoRegister.onclick=(e)=>{e.preventDefault();activateRegister()})
+gotoLogin&& (gotoLogin.onclick=(e)=>{e.preventDefault();activateLogin()})
+forgotLink&& (forgotLink.onclick=(e)=>{e.preventDefault();activateReset()})
+
+resetRequestForm&& resetRequestForm.addEventListener("submit",async e=>{e.preventDefault();const email=(document.getElementById("resetEmailInput").value||"").trim();if(!email){toast("Informe o email","error");return}setLoading(true);try{const res=await apiFetch("/auth/request_password_reset",{method:"POST",body:JSON.stringify({email:email})});const j=await jsonOrText(res);const msg=j.message||"Solicitação enviada";toast(msg,res.ok?"success":"error");lastResetToken=j.reset_token||"";const btn=document.getElementById("resetSubmitBtn");if(btn){btn.disabled=!lastResetToken}}catch(err){toast("Erro ao solicitar reset","error")}finally{setLoading(false)}})
+
+resetForm&& resetForm.addEventListener("submit",async e=>{e.preventDefault();const newPass=(document.getElementById("resetNewPasswordInput").value||"").trim();if(!lastResetToken){toast("Solicite o reset por email","error");return}if(!newPass){toast("Informe a nova senha","error");return}setLoading(true);try{const res=await apiFetch("/auth/reset_password",{method:"POST",body:JSON.stringify({token:lastResetToken,new_password:newPass})});const j=await jsonOrText(res);if(res.ok){toast(j.message||"Senha atualizada","success");activateLogin()}else{toast((j&&j.status)||"Falha ao resetar","error")}}catch(err){toast("Erro no reset","error")}finally{setLoading(false)}})
+
+resetBackBtn&& (resetBackBtn.onclick=()=>activateLogin())
+
+function openAccount(){if(accountModal) accountModal.hidden=false}
+function closeAccount(){if(accountModal) accountModal.hidden=true}
+accountCloseBtn&& (accountCloseBtn.onclick=closeAccount)
+
+updatePasswordForm&& updatePasswordForm.addEventListener("submit",async e=>{e.preventDefault();const oldp=(document.getElementById("oldPasswordInput").value||"").trim();const newp=(document.getElementById("newPasswordInput").value||"").trim();if(!oldp||!newp){toast("Informe as senhas","error");return}setLoading(true);try{const res=await apiFetch("/auth/update_password",{method:"PUT",body:JSON.stringify({old_password:oldp,new_password:newp})});const j=await jsonOrText(res);if(res.ok){toast(j.message||"Senha atualizada","success")}else{toast((j&&j.status)||"Falha ao atualizar","error")}}catch(err){toast("Erro ao atualizar senha","error")}finally{setLoading(false)}})
+
+deleteAccountForm&& deleteAccountForm.addEventListener("submit",async e=>{e.preventDefault();const pass=(document.getElementById("deletePasswordInput").value||"").trim();if(!pass){toast("Informe a senha","error");return}setLoading(true);try{const res=await apiFetch("/auth/delete_account",{method:"DELETE",body:JSON.stringify({password:pass})});if(res.status===204){toast("Conta excluída","success");closeAccount();logout()}else{const j=await jsonOrText(res);toast((j&&j.status)||"Falha ao excluir","error")}}catch(err){toast("Erro ao excluir","error")}finally{setLoading(false)}})
+let lastResetToken=""

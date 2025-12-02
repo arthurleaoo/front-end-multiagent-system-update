@@ -45,7 +45,8 @@ input,select{background:var(--card);border:1px solid var(--border);border-radius
 .agents .chip input:checked::after{content:"";position:absolute;left:4px;top:1px;width:6px;height:10px;border:2px solid #fff;border-top:0;border-left:0;transform:rotate(45deg)}
 .agents .chip span{font-size:12px}
 .agents .chip:has(input:checked){border-color:rgba(59,130,246,.5);background:rgba(59,130,246,.12)}
-.actions{display:flex;gap:12px}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.login-card form + form{margin-top:12px}
 .result{background:#0a0f18;border-top:1px solid var(--border);margin:0;padding:16px;border-radius:0 0 14px 14px;max-height:40vh;overflow:auto}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
 .modal[hidden]{display:none}
@@ -64,6 +65,15 @@ input,select{background:var(--card);border:1px solid var(--border);border-radius
 .login-view[hidden]{display:none}
 .login-card{width:520px;max-width:95vw;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .login-title{font-weight:600}
+.tabs{display:flex;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px}
+.tab{flex:1;appearance:none;background:transparent;border:0;color:var(--text);padding:8px 10px;border-radius:8px;cursor:pointer}
+.tab.active{background:linear-gradient(90deg,#5b21b6,#3b82f6);color:#fff}
+.pane{transition:opacity .25s ease, transform .25s ease}
+.pane.pane-hidden{opacity:.0;transform:translateY(6px);pointer-events:none;height:0;margin:0;padding:0;border:0}
+.login-links{display:flex;justify-content:flex-start}
+.login-links a{font-size:12px;color:var(--primary);text-decoration:none}
+.login-switch{font-size:12px;color:var(--muted)}
+.login-switch a{color:var(--primary);text-decoration:none}
 .chat{display:flex;flex-direction:column;gap:12px;padding:20px}
 .chat-log{display:flex;flex-direction:column;gap:10px;max-height:40vh;overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px}
 .bubble{max-width:70%;padding:10px 12px;border-radius:12px;border:1px solid var(--border)}

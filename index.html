@@ -152,36 +152,106 @@
     </div>
     <section class="login-view" id="loginView" hidden>
       <div class="login-card">
-        <div class="login-title">Entrar</div>
-        <form id="loginForm">
-          <label>
-            <span>Email</span>
-            <input type="email" id="emailInput" required />
-          </label>
-          <label>
-            <span>Senha</span>
-            <input type="password" id="passwordInput" required />
-          </label>
-          <div class="actions">
-            <button class="button primary" id="loginSubmitBtn" type="submit">Entrar</button>
-          </div>
-        </form>
-        <div class="modal-sub">Sem conta? Registre abaixo.</div>
-        <form id="registerForm">
-          <div class="grid">
+        <div class="login-title">Acesso</div>
+        <div class="tabs">
+          <button class="tab active" id="tabLogin">Login</button>
+          <button class="tab" id="tabRegister">Cadastro</button>
+        </div>
+        <div id="loginPane" class="pane">
+          <form id="loginForm">
             <label>
               <span>Email</span>
-              <input type="email" id="regEmailInput" />
+              <input type="email" id="emailInput" required />
             </label>
             <label>
               <span>Senha</span>
-              <input type="password" id="regPasswordInput" />
+              <input type="password" id="passwordInput" required />
             </label>
-          </div>
-          <button class="button" id="registerSubmitBtn" type="submit">Registrar</button>
-        </form>
+            <div class="login-links">
+              <a href="#" id="forgotLink">Esqueceu a senha?</a>
+            </div>
+            <div class="actions">
+              <button class="button primary" id="loginSubmitBtn" type="submit">Entrar</button>
+            </div>
+            <div class="login-switch">
+              <span>Não tem conta?</span> <a href="#" id="gotoRegister">Crie agora</a>
+            </div>
+          </form>
+        </div>
+        <div id="registerPane" class="pane pane-hidden">
+          <form id="registerForm">
+            <div class="grid">
+              <label>
+                <span>Email</span>
+                <input type="email" id="regEmailInput" />
+              </label>
+              <label>
+                <span>Senha</span>
+                <input type="password" id="regPasswordInput" />
+              </label>
+            </div>
+            <div class="actions">
+              <button class="button primary" id="registerSubmitBtn" type="submit">Criar conta</button>
+            </div>
+            <div class="login-switch">
+              <span>Já tem conta?</span> <a href="#" id="gotoLogin">Entrar</a>
+            </div>
+          </form>
+        </div>
+        <div id="resetPane" class="pane pane-hidden">
+          <form id="resetRequestForm">
+            <label>
+              <span>Email</span>
+              <input type="email" id="resetEmailInput" />
+            </label>
+            <div class="actions">
+              <button class="button primary" id="resetRequestBtn" type="submit">Enviar instruções</button>
+            </div>
+          </form>
+          <form id="resetForm">
+            <label>
+              <span>Nova senha</span>
+              <input type="password" id="resetNewPasswordInput" />
+            </label>
+            <div class="actions">
+              <button class="button primary" id="resetSubmitBtn" type="submit">Atualizar senha</button>
+              <button class="button" id="resetBackBtn" type="button">Voltar ao login</button>
+            </div>
+          </form>
+        </div>
       </div>
     </section>
+
+    <div class="modal" id="accountModal" hidden>
+      <div class="modal-body">
+        <div class="modal-title">Conta</div>
+        <form id="updatePasswordForm">
+          <div class="grid">
+            <label>
+              <span>Senha atual</span>
+              <input type="password" id="oldPasswordInput" />
+            </label>
+            <label>
+              <span>Nova senha</span>
+              <input type="password" id="newPasswordInput" />
+            </label>
+          </div>
+          <div class="actions">
+            <button class="button primary" id="updatePasswordBtn" type="submit">Alterar senha</button>
+          </div>
+        </form>
+        <form id="deleteAccountForm">
+          <label>
+            <span>Confirmar senha</span>
+            <input type="password" id="deletePasswordInput" />
+          </label>
+          <div class="actions">
+            <button class="button danger" id="deleteAccountBtn" type="submit">Excluir conta</button>
+            <button class="button" id="accountCloseBtn" type="button">Fechar</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     
 

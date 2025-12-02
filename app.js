@@ -20,6 +20,7 @@ const inlineOpenBtn = document.getElementById("generateInlineBtn")
 const inlineCloseBtn = document.getElementById("inlineCloseBtn")
 const inlineForm = document.getElementById("inlineForm")
 const inlineResult = document.getElementById("inlineResult")
+const zipDiag = document.getElementById("zipDiag")
  
 const chatLog = document.getElementById("chatLog")
 const chatTaskInput = document.getElementById("chatTaskInput")
@@ -78,7 +79,7 @@ generateCloseBtn&& (generateCloseBtn.onclick=()=>{generatePanel.hidden=true})
 inlineOpenBtn&& (inlineOpenBtn.onclick=()=>{inlinePanel.hidden=false})
 inlineCloseBtn&& (inlineCloseBtn.onclick=()=>{inlinePanel.hidden=true})
 
-generateForm&& generateForm.addEventListener("submit",async e=>{e.preventDefault();const task=document.getElementById("taskInput").value.trim();const preset=document.getElementById("presetSelect").value;const project=document.getElementById("projectNameInput").value.trim();const language=(document.getElementById("languageInput").value.trim()||"Python");const groupId=document.getElementById("groupIdInput").value.trim();const agents=[...generateForm.querySelectorAll('.agents input[type="checkbox"]:checked')].map(i=>i.value);if(!token){toast("Faça login","error");return}setLoading(true);const btn=document.getElementById("generateSubmitBtn");btn.disabled=true;try{const payload={task:task,language:language,agents:agents,project_name:project};if(preset) payload.preset=preset; if(preset==="spring") payload.group_id = (groupId||"com.example.demo");const run=()=>apiFetch("/generate_zip",{method:"POST",body:JSON.stringify(payload)});const res=await withRetry(run);if(!res.ok){const txt=await res.text();toast(txt?`Falha: ${txt}`:"Falha ao gerar ZIP","error")}else{const blob=await res.blob();const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`${project||"projeto"}.zip`;document.body.appendChild(a);a.click();URL.revokeObjectURL(url);toast("ZIP gerado","success")}}catch(err){toast("Erro ao gerar ZIP","error")}finally{btn.disabled=false;setLoading(false)}})
+generateForm&& generateForm.addEventListener("submit",async e=>{e.preventDefault();const task=document.getElementById("taskInput").value.trim();const preset=document.getElementById("presetSelect").value;const project=document.getElementById("projectNameInput").value.trim();const language=(document.getElementById("languageInput").value.trim()||"Python");const groupId=document.getElementById("groupIdInput").value.trim();const agents=[...generateForm.querySelectorAll('.agents input[type="checkbox"]:checked')].map(i=>i.value);if(!token){toast("Faça login","error");return}setLoading(true);const btn=document.getElementById("generateSubmitBtn");btn.disabled=true;try{const payload={task:task,language:language,agents:agents,project_name:project};if(preset) payload.preset=preset; if(preset==="spring") payload.group_id = (groupId||"com.example.demo");const run=()=>apiFetch("/generate_zip",{method:"POST",body:JSON.stringify(payload)});const res=await withRetry(run);if(res.status===422){const j=await jsonOrText(res);const msg=j.error||"Validação falhou";toast(msg,"error");if(zipDiag) zipDiag.textContent=renderZipDiagnostics(j)}else if(!res.ok){const j=await jsonOrText(res);toast((j&&j.error)||"Falha ao gerar ZIP","error");if(zipDiag) zipDiag.textContent=renderZipDiagnostics(j)}else{const blob=await res.blob();const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`${project||"projeto"}.zip`;document.body.appendChild(a);a.click();URL.revokeObjectURL(url);toast("ZIP gerado","success");if(zipDiag) zipDiag.textContent=""}}catch(err){toast("Erro ao gerar ZIP","error")}finally{btn.disabled=false;setLoading(false)}})
 
 inlineForm&& inlineForm.addEventListener("submit",async e=>{e.preventDefault();const task=document.getElementById("inlineTaskInput").value.trim();const language=(document.getElementById("inlineLanguageInput").value.trim()||"Python");const preset=document.getElementById("inlinePresetSelect").value;const agents=[...inlineForm.querySelectorAll('.agents input[type="checkbox"]:checked')].map(i=>i.value);if(!token){toast("Faça login","error");return}setLoading(true);const btn=document.getElementById("inlineSubmitBtn");btn.disabled=true;try{const payload={task:task,language:language,agents:agents};const res=await apiFetch("/generate",{method:"POST",body:JSON.stringify(payload)});const j=await res.json();if(res.ok){inlineResult.textContent=JSON.stringify(j,null,2);toast("Execução concluída","success")}else{const txt=await res.text();toast(txt?`Falha: ${txt}`:"Falha na execução","error")}}catch(err){toast("Erro na execução","error")}finally{btn.disabled=false;setLoading(false)}})
 
@@ -139,7 +140,7 @@ function addMessage(role, content, opts){
 }
 
 function getSelectedChatAgents(){if(!chatAgents) return ["front","back","qa"];return [...chatAgents.querySelectorAll('input[type="checkbox"]:checked')].map(i=>i.value)}
-async function executeTaskWithText(task){const language=(chatLanguageInput.value||"Python").trim();const agents=getSelectedChatAgents();if(!agents.length){toast("Selecione ao menos um agente","error");return}if(!token){toast("Faça login","error");return}setLoading(true);try{const payload={task:task,language:language,agents:agents};const run=()=>apiFetch("/generate",{method:"POST",body:JSON.stringify(payload)});const res=await withRetry(run);const j=await res.json();if(res.ok){addMessage('assistant',JSON.stringify(j,null,2));toast("Execução concluída","success")}else{const t=await res.text();addMessage('assistant',t||'Falha na execução');toast("Falha","error")}}catch(e){addMessage('assistant','Erro na execução');toast("Erro","error")}finally{setLoading(false)}}
+async function executeTaskWithText(task){const language=(chatLanguageInput.value||"Python").trim();const agents=getSelectedChatAgents();if(!agents.length){toast("Selecione ao menos um agente","error");return}if(!token){toast("Faça login","error");return}setLoading(true);try{const payload={task:task,language:language,agents:agents};const run=()=>apiFetch("/generate",{method:"POST",body:JSON.stringify(payload)});const res=await withRetry(run);const j=await jsonOrText(res);if(res.ok){const diag=renderZipDiagnostics(j);addMessage('assistant',diag||JSON.stringify(j,null,2));toast("Execução concluída","success")}else{addMessage('assistant',(j&&j.error)||'Falha na execução');toast("Falha","error")}}catch(e){addMessage('assistant','Erro na execução');toast("Erro","error")}finally{setLoading(false)}}
 
 async function generateZipWithText(task){
   const language = (chatLanguageInput.value || "Python").trim();
@@ -155,10 +156,15 @@ async function generateZipWithText(task){
     if(preset === "spring") payload.group_id = "com.example.demo";
     const run = () => apiFetch("/generate_zip",{ method:"POST", body: JSON.stringify(payload) });
     const res = await withRetry(run);
-    if(!res.ok){
-      const t = await res.text();
-      addMessage('assistant', t || 'Falha ao gerar ZIP');
-      toast("Falha","error");
+    if(res.status===422){
+      const j = await jsonOrText(res);
+      const diag = renderZipDiagnostics(j);
+      addMessage('assistant', diag || (j.error||'Validação falhou'));
+      toast(j.error||"Validação falhou","error");
+    } else if(!res.ok){
+      const j = await jsonOrText(res);
+      addMessage('assistant', (j&&j.error)||'Falha ao gerar ZIP');
+      toast((j&&j.error)||"Falha","error");
     } else {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -221,3 +227,4 @@ updatePasswordForm&& updatePasswordForm.addEventListener("submit",async e=>{e.pr
 
 deleteAccountForm&& deleteAccountForm.addEventListener("submit",async e=>{e.preventDefault();const pass=(document.getElementById("deletePasswordInput").value||"").trim();if(!pass){toast("Informe a senha","error");return}setLoading(true);try{const res=await apiFetch("/auth/delete_account",{method:"DELETE",body:JSON.stringify({password:pass})});if(res.status===204){toast("Conta excluída","success");closeAccount();logout()}else{const j=await jsonOrText(res);toast((j&&j.status)||"Falha ao excluir","error")}}catch(err){toast("Erro ao excluir","error")}finally{setLoading(false)}})
 let lastResetToken=""
+function renderZipDiagnostics(j){try{const lines=[];if(j.error) lines.push(`Erro: ${j.error}`);if(j.validation){lines.push(`contract_ok: ${j.validation.contract_ok}`);lines.push(`integration_ok: ${j.validation.integration_ok}`);if(j.validation.contract_error) lines.push(`contract_error: ${j.validation.contract_error}`);if(j.validation.integration_error) lines.push(`integration_error:\n${j.validation.integration_error}`)}if(j.contract){if(j.contract.base_url) lines.push(`base_url: ${j.contract.base_url}`);if(Array.isArray(j.contract.endpoints)){lines.push(`endpoints:`);j.contract.endpoints.forEach(ep=>{const m=(ep.method||ep.METHOD||"").toUpperCase();const p=ep.path||ep.PATH||ep.route||"";lines.push(`- ${m} ${p}`)})}}return lines.join("\n")}catch(e){return JSON.stringify(j,null,2)}}
